@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Sairox Studio Manager</title>
+<meta name="description" content="Sairox Studio — sales, inventory and expense manager">
+<meta name="theme-color" content="#F3EEE3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sairox Studio">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream:#F3EEE3;
+    --paper:#FBF8F2;
+    --ink:#1C1A17;
+    --ink-soft:#5B564C;
+    --gold:#A5813F;
+    --gold-light:#C9A876;
+    --gold-dim:#E8DCC2;
+    --line:#DDD3BE;
+    --good:#5B7553;
+    --good-bg:#E7EDE2;
+    --bad:#9C4A2E;
+    --bad-bg:#F3E1D8;
+    --radius:10px;
+    --shadow: 0 1px 2px rgba(28,26,23,0.06), 0 4px 14px rgba(28,26,23,0.05);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--cream);position:relative;padding-bottom:84px;}
+
+  .num{font-family:'Space Mono',monospace;}
+
+  /* ---------- Header ---------- */
+  .header{
+    padding:22px 20px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:50%;
+    background:conic-gradient(from 210deg, var(--ink) 0deg 180deg, var(--gold) 180deg 360deg);
+    position:relative; flex-shrink:0;
+  }
+  .brand-mark::after{
+    content:"";position:absolute; inset:9px; border-radius:50%; background:var(--paper);
+  }
+  .brand-text .name{font-family:'Playfair Display', serif; font-weight:700; font-size:19px; letter-spacing:0.5px; line-height:1;}
+  .brand-text .tag{font-size:9.5px; letter-spacing:2.5px; color:var(--gold); text-transform:uppercase; margin-top:3px;}
+  .header-date{font-size:11px; color:var(--ink-soft); font-family:'Space Mono',monospace; text-align:right;}
+
+  /* ---------- Content ---------- */
+  .view{padding:18px 16px 8px; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .view h2{font-family:'Playfair Display',serif; font-size:20px; margin:2px 0 14px; font-weight:600;}
+
+  .section-label{
+    font-size:10.5px; letter-spacing:1.8px; text-transform:uppercase; color:var(--ink-soft);
+    margin:22px 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after{content:""; flex:1; height:1px; background:var(--line);}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; box-shadow:var(--shadow);
+  }
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 14px 12px; box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .stat-card .label{font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--ink-soft);}
+  .stat-card .value{font-family:'Space Mono',monospace; font-size:19px; font-weight:700; margin-top:6px; letter-spacing:-0.3px;}
+  .stat-card.profit .value{color:var(--good);}
+  .stat-card.profit.negative .value{color:var(--bad);}
+  .stat-card .thread{position:absolute; top:0; left:0; width:3px; height:100%; background:var(--gold-light);}
+  .stat-card.profit .thread{background:var(--good);}
+  .stat-card.profit.negative .thread{background:var(--bad);}
+
+  .empty{
+    text-align:center; padding:34px 18px; color:var(--ink-soft); font-size:13px;
+    border:1px dashed var(--line); border-radius:var(--radius); background:var(--paper);
+  }
+  .empty .big{font-size:26px; display:block; margin-bottom:6px;}
+
+  /* ---------- List rows (tag style) ---------- */
+  .row-list{display:flex; flex-direction:column; gap:8px;}
+  .item-row{
+    background:var(--paper); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; display:flex; align-items:center; gap:12px; box-shadow:var(--shadow);
+    position:relative;
+  }
+  .item-row::before{
+    content:""; width:7px; height:7px; border-radius:50%; background:var(--cream);
+    border:1px solid var(--line); flex-shrink:0;
+  }
+  .item-row .info{flex:1; min-width:0;}
+  .item-row .title{font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .item-row .sub{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+  .item-row .right{text-align:right; flex-shrink:0;}
+  .item-row .amt{font-family:'Space Mono',monospace; font-size:13.5px; font-weight:700;}
+  .item-row .amt.pos{color:var(--good);}
+  .item-row .amt.neg{color:var(--bad);}
+  .item-row .del{
+    background:none;border:none;color:var(--ink-soft); font-size:15px; padding:4px 2px; cursor:pointer; line-height:1;
+  }
+  .item-row .del:hover{color:var(--bad);}
+  .pill{
+    display:inline-block; font-size:9.5px; letter-spacing:0.6px; text-transform:uppercase;
+    padding:2px 7px; border-radius:20px; background:var(--gold-dim); color:var(--gold); font-weight:700;
+  }
+  .pill.low{background:var(--bad-bg); color:var(--bad);}
+
+  /* ---------- Form ---------- */
+  .add-toggle{
+    width:100%; padding:12px; border-radius:var(--radius); border:1px solid var(--ink);
+    background:var(--ink); color:var(--paper); font-family:'Inter',sans-serif; font-weight:600;
+    font-size:13.5px; letter-spacing:0.3px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .add-toggle:active{opacity:0.85;}
+  .form-panel{
+    margin-top:12px; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; box-shadow:var(--shadow); display:none;
+  }
+  .form-panel.open{display:block; animation:fade .2s ease;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:7px;
+    background:var(--cream); font-family:'Inter',sans-serif; font-size:13.5px; color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--gold-light); outline-offset:0; border-color:var(--gold);}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .btn-row{display:flex; gap:8px; margin-top:14px;}
+  .btn{
+    flex:1; padding:11px; border-radius:7px; font-family:'Inter',sans-serif; font-weight:600;
+    font-size:13px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{background:var(--gold); color:var(--paper); border-color:var(--gold);}
+  .btn-primary:active{opacity:0.85;}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border-color:var(--line);}
+  .err{color:var(--bad); font-size:11.5px; margin-top:-4px; margin-bottom:10px; display:none;}
+  .err.show{display:block;}
+
+  /* ---------- Activity feed ---------- */
+  .feed-item{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line);}
+  .feed-item:last-child{border-bottom:none;}
+  .feed-icon{
+    width:28px;height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:12px; background:var(--gold-dim); color:var(--gold);
+  }
+  .feed-icon.expense{background:var(--bad-bg); color:var(--bad);}
+  .feed-text{flex:1; min-width:0;}
+  .feed-text .t1{font-size:12.5px; font-weight:600;}
+  .feed-text .t2{font-size:10.5px; color:var(--ink-soft); margin-top:1px;}
+  .feed-amt{font-family:'Space Mono',monospace; font-size:12.5px; font-weight:700; align-self:center;}
+
+  /* ---------- Filters (Records) ---------- */
+  .filter-row{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip{
+    padding:6px 13px; border-radius:20px; border:1px solid var(--line); background:var(--paper);
+    font-size:12px; color:var(--ink-soft); cursor:pointer; font-weight:600;
+  }
+  .chip.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  /* ---------- Bottom nav ---------- */
+  .navbar{
+    position:fixed; bottom:0; left:0; right:0; max-width:480px; margin:0 auto;
+    background:var(--paper); border-top:1px solid var(--line);
+    display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    box-shadow:0 -2px 12px rgba(28,26,23,0.06); z-index:10;
+  }
+  .nav-tag{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:6px 2px; cursor:pointer; border-radius:8px; position:relative;
+    color:var(--ink-soft); background:none; border:none; font-family:'Inter',sans-serif;
+  }
+  .nav-tag .dot{width:5px;height:5px;border-radius:50%;background:var(--line); margin-bottom:1px;}
+  .nav-tag.active{color:var(--gold);}
+  .nav-tag.active .dot{background:var(--gold);}
+  .nav-tag svg{width:19px;height:19px;}
+  .nav-tag .lbl{font-size:9.5px; letter-spacing:0.4px; font-weight:600;}
+
+  .toast{
+    position:fixed; bottom:92px; left:50%; transform:translateX(-50%) translateY(10px);
+    background:var(--ink); color:var(--paper); padding:9px 18px; border-radius:20px; font-size:12.5px;
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:50; white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .loading-row{text-align:center; padding:30px; color:var(--ink-soft); font-size:12.5px;}
+</style>
+
+<div id="app">
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-text">
+        <div class="name">Sairox Studio</div>
+        <div class="tag">Rise Different</div>
+      </div>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+
+  <div id="viewHost"><div class="loading-row">Opening the ledger…</div></div>
+
+  <div class="navbar">
+    <button class="nav-tag" data-view="dashboard">
+      <div class="dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <div class="lbl">Home</div>
+    </button>
+    <button class="nav-tag" data-view="inventory">
+      <div class="dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3h8l1 4H7l1-4Z"/><path d="M4 7h16l-1.2 13.2A2 2 0 0 1 16.8 22H7.2a2 2 0 0 1-2-1.8L4 7Z"/></svg>
+      <div class="lbl">Stock</div>
+    </button>
+    <button class="nav-tag" data-view="sales">
+      <div class="dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12l5-8h8l5 8-9 9-9-9Z"/><circle cx="12" cy="12" r="2.3"/></svg>
+      <div class="lbl">Sales</div>
+    </button>
+    <button class="nav-tag" data-view="expenses">
+      <div class="dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v20M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5 2.2 3 5 3.5 5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5"/></svg>
+      <div class="lbl">Spend</div>
+    </button>
+    <button class="nav-tag" data-view="records">
+      <div class="dot"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>
+      <div class="lbl">Records</div>
+    </button>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------- State ----------------
+  let products = [];
+  let sales = [];
+  let expenses = [];
+  let currentView = "dashboard";
+  let recordFilter = "all";
+  let loaded = false;
+
+  const CATEGORIES = ["Onesie / Romper","Dress","Family Set","Shirt / Top","Other"];
+  const EXPENSE_CATS = ["Fabric / Raw Material","Packaging","Shipping / Delivery","Ads / Marketing","Rent / Utilities","Platform Fees","Other"];
+
+  const fmt = n => "₨" + Number(n||0).toLocaleString("en-PK", {maximumFractionDigits:0});
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  const todayStr = () => new Date().toISOString().slice(0,10);
+  const fmtDate = d => new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+
+  function showToast(msg){
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=>t.classList.remove("show"), 1800);
+  }
+
+  // ---------------- Storage ----------------
+  async function loadAll(){
+    products = await safeGet("products", []);
+    sales = await safeGet("sales", []);
+    expenses = await safeGet("expenses", []);
+    loaded = true;
+  }
+  async function safeGet(key, fallback){
+    try{
+      const raw = localStorage.getItem("sairox:" + key);
+      if(raw) return JSON.parse(raw);
+      return fallback;
+    }catch(e){ return fallback; }
+  }
+  async function saveKey(key, value){
+    try{
+      localStorage.setItem("sairox:" + key, JSON.stringify(value));
+      return true;
+    }catch(e){
+      console.error("Storage error", e);
+      showToast("Couldn't save — try again");
+      return false;
+    }
+  }
+  const saveProducts = () => saveKey("products", products);
+  const saveSales = () => saveKey("sales", sales);
+  const saveExpenses = () => saveKey("expenses", expenses);
+
+  // ---------------- Derived numbers ----------------
+  function totals(){
+    const revenue = sales.reduce((s,x)=> s + x.qty*x.unitPrice, 0);
+    const cogs = sales.reduce((s,x)=> s + x.qty*x.unitCost, 0);
+    const expenseTotal = expenses.reduce((s,x)=> s + x.amount, 0);
+    const profit = revenue - cogs - expenseTotal;
+    const inventoryValue = products.reduce((s,p)=> s + p.stock*p.costPrice, 0);
+    const inventoryRetailValue = products.reduce((s,p)=> s + p.stock*p.salePrice, 0);
+    return {revenue, cogs, expenseTotal, profit, inventoryValue, inventoryRetailValue};
+  }
+
+  // ---------------- Render router ----------------
+  function render(){
+    const host = document.getElementById("viewHost");
+    document.querySelectorAll(".nav-tag").forEach(b=> b.classList.toggle("active", b.dataset.view===currentView));
+    if(!loaded){ host.innerHTML = '<div class="loading-row">Opening the ledger…</div>'; return; }
+    if(currentView==="dashboard") host.innerHTML = renderDashboard();
+    else if(currentView==="inventory") host.innerHTML = renderInventory();
+    else if(currentView==="sales") host.innerHTML = renderSales();
+    else if(currentView==="expenses") host.innerHTML = renderExpenses();
+    else if(currentView==="records") host.innerHTML = renderRecords();
+    attachViewHandlers();
+  }
+
+  // ---------------- Dashboard ----------------
+  function renderDashboard(){
+    const t = totals();
+    const lowStock = products.filter(p=>p.stock<=3);
+    const feed = [
+      ...sales.map(s=>({type:"sale", date:s.date, ts:s.createdAt, title:s.productName, sub:`${s.qty} pc • ${s.customer||"Sale"}`, amt:s.qty*s.unitPrice})),
+      ...expenses.map(e=>({type:"expense", date:e.date, ts:e.createdAt, title:e.category, sub:e.note||"Expense", amt:e.amount}))
+    ].sort((a,b)=> (b.ts||0)-(a.ts||0)).slice(0,6);
+
+    return `
+      <h2>Overview</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="thread"></div><div class="label">Revenue</div><div class="value num">${fmt(t.revenue)}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Total Costs</div><div class="value num">${fmt(t.cogs+t.expenseTotal)}</div></div>
+        <div class="stat-card profit ${t.profit<0?"negative":""}"><div class="thread"></div><div class="label">Net Profit</div><div class="value num">${fmt(t.profit)}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Stock Value (cost)</div><div class="value num">${fmt(t.inventoryValue)}</div></div>
+      </div>
+
+      ${lowStock.length ? `
+      <div class="section-label">Low Stock</div>
+      <div class="row-list">
+        ${lowStock.map(p=>`
+          <div class="item-row">
+            <div class="info">
+              <div class="title">${esc(p.name)}</div>
+              <div class="sub">${esc(p.category)}</div>
+            </div>
+            <span class="pill low">${p.stock} left</span>
+          </div>`).join("")}
+      </div>` : ""}
+
+      <div class="section-label">Recent Activity</div>
+      ${feed.length===0 ? `<div class="empty"><span class="big">🧵</span>Nothing recorded yet.<br>Add a sale or expense to see it here.</div>` : `
+      <div class="card">
+        ${feed.map(f=>`
+          <div class="feed-item">
+            <div class="feed-icon ${f.type==='expense'?'expense':''}">${f.type==='expense'?'−':'+'}</div>
+            <div class="feed-text">
+              <div class="t1">${esc(f.title)}</div>
+              <div class="t2">${esc(f.sub)} · ${fmtDate(f.date)}</div>
+            </div>
+            <div class="feed-amt" style="color:${f.type==='expense'?'var(--bad)':'var(--good)'}">${f.type==='expense'?'−':'+'}${fmt(f.amt)}</div>
+          </div>`).join("")}
+      </div>`}
+    `;
+  }
+
+  // ---------------- Inventory ----------------
+  function renderInventory(){
+    const t = totals();
+    return `
+      <h2>Inventory</h2>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="thread"></div><div class="label">Items</div><div class="value num">${products.length}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Stock Value (cost)</div><div class="value num">${fmt(t.inventoryValue)}</div></div>
+      </div>
+
+      <button class="add-toggle" id="toggleAddProduct">+ Add Product</button>
+      <div class="form-panel" id="productForm">
+        <div class="field">
+          <label>Product name</label>
+          <input type="text" id="p-name" placeholder="e.g. Cream Cotton Romper">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="p-category">${CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join("")}</select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Cost price (₨)</label>
+            <input type="number" id="p-cost" placeholder="0" min="0">
+          </div>
+          <div class="field">
+            <label>Sale price (₨)</label>
+            <input type="number" id="p-sale" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="field">
+          <label>Stock quantity</label>
+          <input type="number" id="p-stock" placeholder="0" min="0">
+        </div>
+        <div class="err" id="p-err"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="p-cancel">Cancel</button>
+          <button class="btn btn-primary" id="p-save">Save Product</button>
+        </div>
+      </div>
+
+      <div class="section-label">All Products</div>
+      ${products.length===0 ? `<div class="empty"><span class="big">👕</span>No products yet.<br>Add your first item above.</div>` :
+        `<div class="row-list">
+          ${products.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`
+            <div class="item-row">
+              <div class="info">
+                <div class="title">${esc(p.name)}</div>
+                <div class="sub">${esc(p.category)} · cost ${fmt(p.costPrice)} · sells ${fmt(p.salePrice)}</div>
+              </div>
+              <div class="right">
+                <span class="pill ${p.stock<=3?'low':''}">${p.stock} in stock</span>
+              </div>
+              <button class="del" data-del-product="${p.id}" title="Delete">✕</button>
+            </div>`).join("")}
+        </div>`}
+    `;
+  }
+
+  // ---------------- Sales ----------------
+  function renderSales(){
+    const t = totals();
+    const sorted = sales.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    return `
+      <h2>Sales</h2>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="thread"></div><div class="label">Total Revenue</div><div class="value num">${fmt(t.revenue)}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Gross Profit</div><div class="value num">${fmt(t.revenue-t.cogs)}</div></div>
+      </div>
+
+      ${products.length===0 ? `<div class="empty"><span class="big">🏷️</span>Add a product in Stock first,<br>then record sales here.</div>` : `
+      <button class="add-toggle" id="toggleAddSale">+ Record Sale</button>
+      <div class="form-panel" id="saleForm">
+        <div class="field">
+          <label>Product</label>
+          <select id="s-product">
+            ${products.map(p=>`<option value="${p.id}" ${p.stock<=0?'disabled':''}>${esc(p.name)} (${p.stock} in stock)</option>`).join("")}
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Quantity</label>
+            <input type="number" id="s-qty" value="1" min="1">
+          </div>
+          <div class="field">
+            <label>Price per piece (₨)</label>
+            <input type="number" id="s-price" min="0">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="s-date" value="${todayStr()}">
+          </div>
+          <div class="field">
+            <label>Customer (optional)</label>
+            <input type="text" id="s-customer" placeholder="Name">
+          </div>
+        </div>
+        <div class="err" id="s-err"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="s-cancel">Cancel</button>
+          <button class="btn btn-primary" id="s-save">Save Sale</button>
+        </div>
+      </div>`}
+
+      <div class="section-label">Sale History</div>
+      ${sorted.length===0 ? `<div class="empty"><span class="big">🧾</span>No sales recorded yet.</div>` :
+        `<div class="row-list">
+          ${sorted.map(s=>`
+            <div class="item-row">
+              <div class="info">
+                <div class="title">${esc(s.productName)}</div>
+                <div class="sub">${s.qty} pc × ${fmt(s.unitPrice)} · ${fmtDate(s.date)}${s.customer?' · '+esc(s.customer):''}</div>
+              </div>
+              <div class="right"><div class="amt pos">+${fmt(s.qty*s.unitPrice)}</div></div>
+              <button class="del" data-del-sale="${s.id}" title="Delete">✕</button>
+            </div>`).join("")}
+        </div>`}
+    `;
+  }
+
+  // ---------------- Expenses ----------------
+  function renderExpenses(){
+    const t = totals();
+    const sorted = expenses.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    return `
+      <h2>Expenses</h2>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card"><div class="thread"></div><div class="label">Total Spent</div><div class="value num">${fmt(t.expenseTotal)}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Cost of Goods Sold</div><div class="value num">${fmt(t.cogs)}</div></div>
+      </div>
+
+      <button class="add-toggle" id="toggleAddExpense">+ Add Expense</button>
+      <div class="form-panel" id="expenseForm">
+        <div class="field">
+          <label>Category</label>
+          <select id="e-category">${EXPENSE_CATS.map(c=>`<option value="${c}">${c}</option>`).join("")}</select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Amount (₨)</label>
+            <input type="number" id="e-amount" placeholder="0" min="0">
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="e-date" value="${todayStr()}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Note (optional)</label>
+          <input type="text" id="e-note" placeholder="e.g. Courier for June orders">
+        </div>
+        <div class="err" id="e-err"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="e-cancel">Cancel</button>
+          <button class="btn btn-primary" id="e-save">Save Expense</button>
+        </div>
+      </div>
+
+      <div class="section-label">Expense History</div>
+      ${sorted.length===0 ? `<div class="empty"><span class="big">🧵</span>No expenses recorded yet.</div>` :
+        `<div class="row-list">
+          ${sorted.map(e=>`
+            <div class="item-row">
+              <div class="info">
+                <div class="title">${esc(e.category)}</div>
+                <div class="sub">${e.note?esc(e.note)+' · ':''}${fmtDate(e.date)}</div>
+              </div>
+              <div class="right"><div class="amt neg">−${fmt(e.amount)}</div></div>
+              <button class="del" data-del-expense="${e.id}" title="Delete">✕</button>
+            </div>`).join("")}
+        </div>`}
+    `;
+  }
+
+  // ---------------- Records ----------------
+  function renderRecords(){
+    const t = totals();
+    let combined = [
+      ...sales.map(s=>({type:"Sale", date:s.date, ts:s.createdAt, title:s.productName, sub:`${s.qty} pc${s.customer?' · '+s.customer:''}`, amt:s.qty*s.unitPrice, sign:1})),
+      ...expenses.map(e=>({type:"Expense", date:e.date, ts:e.createdAt, title:e.category, sub:e.note||"", amt:e.amount, sign:-1}))
+    ];
+    if(recordFilter==="sales") combined = combined.filter(c=>c.type==="Sale");
+    if(recordFilter==="expenses") combined = combined.filter(c=>c.type==="Expense");
+    combined.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+    return `
+      <h2>Records</h2>
+      <div class="stat-grid" style="margin-bottom:16px;">
+        <div class="stat-card profit ${t.profit<0?"negative":""}"><div class="thread"></div><div class="label">Net Profit (all time)</div><div class="value num">${fmt(t.profit)}</div></div>
+        <div class="stat-card"><div class="thread"></div><div class="label">Retail Stock Value</div><div class="value num">${fmt(t.inventoryRetailValue)}</div></div>
+      </div>
+
+      <div class="filter-row">
+        <button class="chip ${recordFilter==='all'?'active':''}" data-filter="all">All</button>
+        <button class="chip ${recordFilter==='sales'?'active':''}" data-filter="sales">Sales</button>
+        <button class="chip ${recordFilter==='expenses'?'active':''}" data-filter="expenses">Expenses</button>
+      </div>
+
+      ${combined.length===0 ? `<div class="empty"><span class="big">📖</span>No records match this filter.</div>` :
+        `<div class="row-list">
+          ${combined.map(c=>`
+            <div class="item-row">
+              <div class="info">
+                <div class="title">${esc(c.title)}</div>
+                <div class="sub">${c.type} ${c.sub?'· '+esc(c.sub):''} · ${fmtDate(c.date)}</div>
+              </div>
+              <div class="right"><div class="amt ${c.sign>0?'pos':'neg'}">${c.sign>0?'+':'−'}${fmt(c.amt)}</div></div>
+            </div>`).join("")}
+        </div>`}
+    `;
+  }
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+  // ---------------- Handlers ----------------
+  function attachViewHandlers(){
+    if(currentView==="inventory"){
+      const toggle = document.getElementById("toggleAddProduct");
+      const panel = document.getElementById("productForm");
+      if(toggle) toggle.onclick = ()=> panel.classList.toggle("open");
+      const cancel = document.getElementById("p-cancel");
+      if(cancel) cancel.onclick = ()=>{ panel.classList.remove("open"); };
+      const save = document.getElementById("p-save");
+      if(save) save.onclick = onSaveProduct;
+      document.querySelectorAll("[data-del-product]").forEach(b=>{
+        b.onclick = ()=> deleteProduct(b.dataset.delProduct);
+      });
+    }
+    if(currentView==="sales"){
+      const toggle = document.getElementById("toggleAddSale");
+      const panel = document.getElementById("saleForm");
+      if(toggle) toggle.onclick = ()=>{
+        panel.classList.toggle("open");
+        const sel = document.getElementById("s-product");
+        if(sel) syncSalePrice();
+      };
+      const sel = document.getElementById("s-product");
+      if(sel) sel.onchange = syncSalePrice;
+      const cancel = document.getElementById("s-cancel");
+      if(cancel) cancel.onclick = ()=>{ panel.classList.remove("open"); };
+      const save = document.getElementById("s-save");
+      if(save) save.onclick = onSaveSale;
+      document.querySelectorAll("[data-del-sale]").forEach(b=>{
+        b.onclick = ()=> deleteSale(b.dataset.delSale);
+      });
+    }
+    if(currentView==="expenses"){
+      const toggle = document.getElementById("toggleAddExpense");
+      const panel = document.getElementById("expenseForm");
+      if(toggle) toggle.onclick = ()=> panel.classList.toggle("open");
+      const cancel = document.getElementById("e-cancel");
+      if(cancel) cancel.onclick = ()=>{ panel.classList.remove("open"); };
+      const save = document.getElementById("e-save");
+      if(save) save.onclick = onSaveExpense;
+      document.querySelectorAll("[data-del-expense]").forEach(b=>{
+        b.onclick = ()=> deleteExpense(b.dataset.delExpense);
+      });
+    }
+    if(currentView==="records"){
+      document.querySelectorAll("[data-filter]").forEach(b=>{
+        b.onclick = ()=>{ recordFilter = b.dataset.filter; render(); };
+      });
+    }
+  }
+
+  function syncSalePrice(){
+    const sel = document.getElementById("s-product");
+    const priceInput = document.getElementById("s-price");
+    if(!sel || !priceInput) return;
+    const p = products.find(x=>x.id===sel.value);
+    if(p) priceInput.value = p.salePrice;
+  }
+
+  async function onSaveProduct(){
+    const name = document.getElementById("p-name").value.trim();
+    const category = document.getElementById("p-category").value;
+    const cost = parseFloat(document.getElementById("p-cost").value);
+    const sale = parseFloat(document.getElementById("p-sale").value);
+    const stock = parseInt(document.getElementById("p-stock").value);
+    const err = document.getElementById("p-err");
+    if(!name || isNaN(cost) || isNaN(sale) || isNaN(stock) || cost<0 || sale<0 || stock<0){
+      err.textContent = "Please fill in a name, valid prices and stock quantity.";
+      err.classList.add("show");
+      return;
+    }
+    products.push({id:uid(), name, category, costPrice:cost, salePrice:sale, stock, createdAt:Date.now()});
+    await saveProducts();
+    showToast("Product added");
+    render();
+  }
+
+  async function deleteProduct(id){
+    products = products.filter(p=>p.id!==id);
+    await saveProducts();
+    showToast("Product removed");
+    render();
+  }
+
+  async function onSaveSale(){
+    const productId = document.getElementById("s-product").value;
+    const qty = parseInt(document.getElementById("s-qty").value);
+    const unitPrice = parseFloat(document.getElementById("s-price").value);
+    const date = document.getElementById("s-date").value || todayStr();
+    const customer = document.getElementById("s-customer").value.trim();
+    const err = document.getElementById("s-err");
+    const product = products.find(p=>p.id===productId);
+    if(!product || !qty || qty<1 || isNaN(unitPrice) || unitPrice<0){
+      err.textContent = "Choose a product and enter a valid quantity and price.";
+      err.classList.add("show");
+      return;
+    }
+    if(qty > product.stock){
+      err.textContent = `Only ${product.stock} in stock for ${product.name}.`;
+      err.classList.add("show");
+      return;
+    }
+    sales.push({id:uid(), productId, productName:product.name, qty, unitPrice, unitCost:product.costPrice, date, customer, createdAt:Date.now()});
+    product.stock -= qty;
+    await saveSales();
+    await saveProducts();
+    showToast("Sale recorded");
+    render();
+  }
+
+  async function deleteSale(id){
+    const sale = sales.find(s=>s.id===id);
+    if(sale){
+      const product = products.find(p=>p.id===sale.productId);
+      if(product) product.stock += sale.qty;
+    }
+    sales = sales.filter(s=>s.id!==id);
+    await saveSales();
+    await saveProducts();
+    showToast("Sale removed, stock restored");
+    render();
+  }
+
+  async function onSaveExpense(){
+    const category = document.getElementById("e-category").value;
+    const amount = parseFloat(document.getElementById("e-amount").value);
+    const date = document.getElementById("e-date").value || todayStr();
+    const note = document.getElementById("e-note").value.trim();
+    const err = document.getElementById("e-err");
+    if(isNaN(amount) || amount<=0){
+      err.textContent = "Enter a valid amount.";
+      err.classList.add("show");
+      return;
+    }
+    expenses.push({id:uid(), category, amount, date, note, createdAt:Date.now()});
+    await saveExpenses();
+    showToast("Expense added");
+    render();
+  }
+
+  async function deleteExpense(id){
+    expenses = expenses.filter(e=>e.id!==id);
+    await saveExpenses();
+    showToast("Expense removed");
+    render();
+  }
+
+  // ---------------- Nav ----------------
+  document.querySelectorAll(".nav-tag").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      currentView = b.dataset.view;
+      render();
+    });
+  });
+
+  document.getElementById("headerDate").textContent = new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+
+  loadAll().then(render);
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(function(e){ console.log('SW registration failed', e); });
+  });
+}
+</script>
+</body>
+</html>
+{
+  "name": "Sairox Studio Manager",
+  "short_name": "Sairox Studio",
+  "description": "Sales, inventory and expense manager for Sairox Studio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3EEE3",
+  "theme_color": "#F3EEE3",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
+const CACHE_NAME = "sairox-studio-v1";
+const ASSETS = [
+  "./index.html",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return (
+        cached ||
+        fetch(event.request)
+          .then((response) => {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            return response;
+          })
+          .catch(() => cached)
+      );
+    })
+  );
+});
