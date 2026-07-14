@@ -1,0 +1,16 @@
+{
+  "name": "Sairox Studio Manager",
+  "short_name": "Sairox Studio",
+  "description": "Sales, inventory and expense manager for Sairox Studio",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3EEE3",
+  "theme_color": "#F3EEE3",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
